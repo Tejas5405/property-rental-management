@@ -8,6 +8,7 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', requireRole('admin', 'manager'), asyncHandler(TenantController.list));
+router.get('/me', requireRole('tenant'), asyncHandler(TenantController.me));
 router.get('/:id', requireRole('admin', 'manager', 'tenant'), asyncHandler(TenantController.get));
 router.post('/', requireRole('admin', 'manager'), asyncHandler(TenantController.create));
 router.put('/:id', requireRole('admin', 'manager', 'tenant'), asyncHandler(TenantController.update));

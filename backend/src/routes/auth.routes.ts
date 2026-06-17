@@ -14,6 +14,8 @@ router.post('/reset-password', asyncHandler(AuthController.resetPassword));
 // Authenticated
 router.post('/logout', authenticate, asyncHandler(AuthController.logout));
 router.get('/me', authenticate, asyncHandler(AuthController.me));
+router.get('/users', authenticate, requireRole('admin'), asyncHandler(AuthController.listUsers));
 router.put('/users/:id/role', authenticate, requireRole('admin'), asyncHandler(AuthController.updateRole));
+router.put('/users/:id/active', authenticate, requireRole('admin'), asyncHandler(AuthController.setActive));
 
 export default router;

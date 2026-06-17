@@ -13,6 +13,14 @@ export const TenantController = {
     res.json(await TenantRepository.findAll());
   },
 
+  // GET /api/tenants/me  (tenant — own record)
+  async me(req: Request, res: Response): Promise<void> {
+    const user = requireUser(req);
+    const tenant = await TenantRepository.findByUserId(user.id);
+    if (!tenant) throw new HttpError(404, 'No tenant profile linked to this account');
+    res.json(tenant);
+  },
+
   // GET /api/tenants/:id  (admin, manager, self)
   async get(req: Request, res: Response): Promise<void> {
     const user = requireUser(req);

@@ -56,6 +56,20 @@ export const AuthController = {
     res.json(req.user);
   },
 
+  // GET /api/auth/users  (admin only)
+  async listUsers(_req: Request, res: Response): Promise<void> {
+    res.json(await UserRepository.findAll());
+  },
+
+  // PUT /api/auth/users/:id/active  (admin only)
+  async setActive(req: Request, res: Response): Promise<void> {
+    const { is_active } = req.body ?? {};
+    if (typeof is_active !== 'boolean') throw new HttpError(400, 'is_active (boolean) is required');
+    const target = await UserRepository.findById(req.params.id);
+    if (!target) throw new HttpError(404, 'User not found');
+    res.json(await UserRepository.update(req.params.id, { is_active }));
+  },
+
   // PUT /api/auth/users/:id/role  (admin only)
   async updateRole(req: Request, res: Response): Promise<void> {
     const { role } = req.body ?? {};
