@@ -25,14 +25,21 @@ create extension if not exists "pgcrypto";   -- gen_random_uuid(), crypt()
 
 -- Returns the role of the currently authenticated user (from public.users).
 -- SECURITY DEFINER so RLS policies can call it without recursing into users RLS.
+-- plpgsql (not sql) so the body is validated lazily at call time — this lets the
+-- function be defined before public.users exists in this script.
 create or replace function public.current_user_role()
 returns text
-language sql
+language plpgsql
 stable
 security definer
 set search_path = public
 as $$
-  select u.role from public.users u where u.id = auth.uid();
+declare
+  v_role text;
+begin
+  select u.role into v_role from public.users u where u.id = auth.uid();
+  return v_role;
+end;
 $$;
 
 -- Generic updated_at maintenance trigger function.

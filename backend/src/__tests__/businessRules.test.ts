@@ -124,10 +124,19 @@ run('PRMS business rules (live DB)', () => {
   });
 
   it('Rule 8: a tenant only sees their own agreements', async () => {
-    const res = await request(app).get('/api/agreements').set('Authorization', bearer(TENANT));
-    expect(res.status).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    // A tenant should never see the full set of agreements an admin sees.
-    expect(res.body.length).toBeLessThanOrEqual(agreements.length);
+    const tenantRes = await request(app).get('/api/agreements').set('Authorization', bearer(TENANT));
+    const adminRes = await request(app).get('/api/agreements').set('Authorization', bearer(ADMIN));
+    expect(tenantRes.status).toBe(200);
+    expect(Array.isArray(tenantRes.body)).toBe(true);
+
+    // Every agreement the tenant sees belongs to a single tenant_id...
+    const tenantIds = new Set((tenantRes.body as Agreement[]).map((a) => a.tenant_id));
+    expect(tenantIds.size).toBe(1);
+
+    // ...while the admin sees agreements spanning more than one tenant, and the
+    // tenant's view is a strict subset of the admin's full set.
+    const adminTenantIds = new Set((adminRes.body as Agreement[]).map((a) => a.tenant_id));
+    expect(adminTenantIds.size).toBeGreaterThan(1);
+    expect(tenantRes.body.length).toBeLessThan(adminRes.body.length);
   });
 });

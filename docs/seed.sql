@@ -50,6 +50,25 @@ values
    '{"name":"Alice Tenant","role":"tenant","phone":"+1-555-0103"}', now(), now())
 on conflict (id) do nothing;
 
+-- GoTrue scans these varchar columns into Go strings and errors ("Database error
+-- querying schema") if they are NULL. Manual inserts leave them NULL, so coerce
+-- them to '' for the seeded users. Idempotent.
+update auth.users set
+  confirmation_token         = coalesce(confirmation_token, ''),
+  recovery_token             = coalesce(recovery_token, ''),
+  email_change               = coalesce(email_change, ''),
+  email_change_token_new     = coalesce(email_change_token_new, ''),
+  email_change_token_current = coalesce(email_change_token_current, ''),
+  phone_change               = coalesce(phone_change, ''),
+  phone_change_token         = coalesce(phone_change_token, ''),
+  reauthentication_token     = coalesce(reauthentication_token, '')
+where id in (
+  '00000000-0000-0000-0000-000000000001',
+  '00000000-0000-0000-0000-000000000002',
+  '00000000-0000-0000-0000-000000000003',
+  '00000000-0000-0000-0000-000000000004'
+);
+
 -- Identities (required by GoTrue for email/password sign-in)
 insert into auth.identities (
   id, user_id, identity_data, provider, provider_id,
