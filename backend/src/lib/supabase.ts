@@ -1,4 +1,13 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { WebSocket as WsWebSocket } from 'ws';
+
+// @supabase/supabase-js (realtime) requires a global WebSocket at client
+// construction. Node < 22 has none, which crashes the import on those runtimes
+// (e.g. CI on Node 20, and Render's Node 20 free tier). Polyfill when missing.
+const globalWithWs = globalThis as unknown as { WebSocket?: unknown };
+if (!globalWithWs.WebSocket) {
+  globalWithWs.WebSocket = WsWebSocket;
+}
 
 // Use `||` (not `??`) so empty strings — which is what GitHub Actions injects
 // for unset secrets — fall back to the placeholders below instead of being
