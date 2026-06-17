@@ -4,30 +4,54 @@ import { Agreement, Property, Tenant } from '../types';
 
 /**
  * Integration tests for the eight core business rules. These hit a LIVE
- * Supabase instance through the API, so they only run when the required
- * environment variables are present:
- *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
- *   TEST_ADMIN_TOKEN, TEST_MANAGER_TOKEN, TEST_TENANT_TOKEN
- * Otherwise the whole suite is skipped (so CI stays green until secrets exist).
+ * Supabase instance through the API, so they only run when these env vars are
+ * present (otherwise the whole suite is skipped so CI stays green):
+ *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY
+ *
+ * Access tokens are short-lived, so rather than relying on static TEST_*_TOKEN
+ * secrets (which expire) the suite mints fresh tokens at runtime by signing the
+ * demo users in with the anon key.
  */
 const app = createApp();
-const ADMIN = process.env.TEST_ADMIN_TOKEN ?? '';
-const MANAGER = process.env.TEST_MANAGER_TOKEN ?? '';
-const TENANT = process.env.TEST_TENANT_TOKEN ?? '';
+const SUPABASE_URL = process.env.SUPABASE_URL ?? '';
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
 
-const hasCreds = Boolean(
-  process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY && ADMIN && MANAGER && TENANT
-);
+const hasCreds = Boolean(SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY && ANON_KEY);
+
+const DEMO = {
+  admin: { email: 'admin@prms.dev', password: 'Admin1234!' },
+  manager: { email: 'manager@prms.dev', password: 'Manager1!' },
+  tenant: { email: 'tenant1@prms.dev', password: 'Tenant1!' },
+};
+
+async function mintToken(email: string, password: string): Promise<string> {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  const json = (await res.json()) as { access_token?: string };
+  if (!json.access_token) throw new Error(`Failed to mint token for ${email}`);
+  return json.access_token;
+}
 
 const bearer = (token: string) => `Bearer ${token}`;
 const run = hasCreds ? describe : describe.skip;
 
 run('PRMS business rules (live DB)', () => {
+  let ADMIN = '';
+  let MANAGER = '';
+  let TENANT = '';
   let properties: Property[] = [];
   let tenants: Tenant[] = [];
   let agreements: Agreement[] = [];
 
   beforeAll(async () => {
+    [ADMIN, MANAGER, TENANT] = await Promise.all([
+      mintToken(DEMO.admin.email, DEMO.admin.password),
+      mintToken(DEMO.manager.email, DEMO.manager.password),
+      mintToken(DEMO.tenant.email, DEMO.tenant.password),
+    ]);
     properties = (await request(app).get('/api/properties').set('Authorization', bearer(ADMIN))).body;
     tenants = (await request(app).get('/api/tenants').set('Authorization', bearer(ADMIN))).body;
     agreements = (await request(app).get('/api/agreements').set('Authorization', bearer(ADMIN))).body;
