@@ -18,7 +18,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const err = new URLSearchParams(window.location.search).get('error');
+    const err = new URLSearchParams(globalThis.location.search).get('error');
     if (err) setError(err);
   }, []);
 
@@ -69,7 +69,7 @@ export default function LoginPage() {
           </form>
           <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
-            OR
+            <span>OR</span>
             <span className="h-px flex-1 bg-border" />
           </div>
           <GoogleSignInButton onError={(m) => setError(m || null)} />

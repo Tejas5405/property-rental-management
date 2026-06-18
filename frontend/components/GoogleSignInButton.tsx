@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabaseClient';
  * Starts the Supabase Google OAuth flow. On success the browser is redirected
  * to Google and back to /auth/callback, which exchanges the code for a session.
  */
-export function GoogleSignInButton({ onError }: { onError?: (message: string) => void }) {
+export function GoogleSignInButton({ onError }: Readonly<{ onError?: (message: string) => void }>) {
   const [loading, setLoading] = useState(false);
 
   async function onClick() {
@@ -16,7 +16,7 @@ export function GoogleSignInButton({ onError }: { onError?: (message: string) =>
     setLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: `${globalThis.location.origin}/auth/callback` },
     });
     if (error) {
       setLoading(false);

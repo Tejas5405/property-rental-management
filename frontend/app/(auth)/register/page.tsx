@@ -74,7 +74,7 @@ export default function RegisterPage() {
           </form>
           <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
-            OR
+            <span>OR</span>
             <span className="h-px flex-1 bg-border" />
           </div>
           <GoogleSignInButton onError={(m) => setError(m || null)} />
