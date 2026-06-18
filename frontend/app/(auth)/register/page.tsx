@@ -72,11 +72,6 @@ export default function RegisterPage() {
               {loading ? 'Creating account…' : 'Create account'}
             </Button>
           </form>
-          <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            <span>OR</span>
-            <span className="h-px flex-1 bg-border" />
-          </div>
           <GoogleSignInButton onError={(m) => setError(m || null)} />
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{' '}

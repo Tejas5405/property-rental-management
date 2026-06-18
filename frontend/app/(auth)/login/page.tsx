@@ -67,11 +67,6 @@ export default function LoginPage() {
               {loading ? 'Signing in…' : 'Sign In'}
             </Button>
           </form>
-          <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            <span>OR</span>
-            <span className="h-px flex-1 bg-border" />
-          </div>
           <GoogleSignInButton onError={(m) => setError(m || null)} />
           <div className="mt-4 flex justify-between text-sm">
             <Link href="/forgot-password" className="text-muted-foreground hover:underline">
