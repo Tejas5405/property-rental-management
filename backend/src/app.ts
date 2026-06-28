@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
-import morgan from 'morgan';
+import pinoHttp from 'pino-http';
 
 import authRoutes from './routes/auth.routes';
 import propertyRoutes from './routes/properties.routes';
@@ -9,6 +9,8 @@ import tenantRoutes from './routes/tenants.routes';
 import agreementRoutes from './routes/agreements.routes';
 import paymentRoutes from './routes/payments.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import { authLimiter } from './middleware/rateLimiter';
+import { logger } from './lib/logger';
 import { HttpError } from './types';
 
 export function createApp(): express.Express {
@@ -22,13 +24,15 @@ export function createApp(): express.Express {
     })
   );
   app.use(express.json());
-  if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'));
+  if (process.env.NODE_ENV !== 'test') {
+    app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => (req as Request).url === '/health' } }));
+  }
 
   app.get('/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  app.use('/api/auth', authRoutes);
+  app.use('/api/auth', authLimiter, authRoutes);
   app.use('/api/properties', propertyRoutes);
   app.use('/api/tenants', tenantRoutes);
   app.use('/api/agreements', agreementRoutes);
@@ -46,8 +50,7 @@ export function createApp(): express.Express {
     const status = err instanceof HttpError ? err.status : 500;
     const message = err instanceof Error ? err.message : 'Internal server error';
     if (status >= 500) {
-      // eslint-disable-next-line no-console
-      console.error(err);
+      logger.error(err, 'Unhandled server error');
     }
     res.status(status).json({ error: message });
   });
