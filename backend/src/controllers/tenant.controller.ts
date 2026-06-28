@@ -34,8 +34,7 @@ export const TenantController = {
 
   // POST /api/tenants  (admin, manager)
   async create(req: Request, res: Response): Promise<void> {
-    const { name, email, phone, user_id } = req.body ?? {};
-    if (!name || !email) throw new HttpError(400, 'name and email are required');
+    const { name, email, phone, user_id } = req.body;
     const tenant = await TenantRepository.create({ name, email, phone: phone ?? null, user_id: user_id ?? null });
     res.status(201).json(tenant);
   },
@@ -48,7 +47,7 @@ export const TenantController = {
     if (user.role === 'tenant' && tenant.user_id !== user.id) {
       throw new HttpError(403, 'Forbidden');
     }
-    const { name, phone, email } = req.body ?? {};
+    const { name, phone, email } = req.body;
     const fields: Record<string, unknown> = {};
     if (name !== undefined) fields.name = name;
     if (phone !== undefined) fields.phone = phone;

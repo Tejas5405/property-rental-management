@@ -55,10 +55,7 @@ export const PaymentController = {
   // POST /api/payments  (admin, manager)
   async create(req: Request, res: Response): Promise<void> {
     const user = requireUser(req);
-    const { agreement_id, amount, due_date, status, method } = req.body ?? {};
-    if (!agreement_id || amount === undefined || !due_date) {
-      throw new HttpError(400, 'agreement_id, amount and due_date are required');
-    }
+    const { agreement_id, amount, due_date, status, method } = req.body;
     await assertAgreementAccess(user, agreement_id);
     const payment = await PaymentRepository.create({
       agreement_id,
