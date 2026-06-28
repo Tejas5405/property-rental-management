@@ -43,8 +43,7 @@ export const PropertyController = {
   // POST /api/properties  (admin, manager)
   async create(req: Request, res: Response): Promise<void> {
     const user = requireUser(req);
-    const { name, address, type, rent, bedrooms, bathrooms, status, manager_id } = req.body ?? {};
-    if (!name || !address || !type) throw new HttpError(400, 'name, address and type are required');
+    const { name, address, type, rent, bedrooms, bathrooms, status, manager_id } = req.body;
     const property = await PropertyRepository.create({
       name,
       address,
@@ -67,7 +66,7 @@ export const PropertyController = {
     if (user.role === 'manager' && property.manager_id !== user.id) {
       throw new HttpError(403, 'Forbidden: not your property');
     }
-    const { name, address, type, rent, bedrooms, bathrooms, status } = req.body ?? {};
+    const { name, address, type, rent, bedrooms, bathrooms, status } = req.body;
     const fields = { name, address, type, rent, bedrooms, bathrooms, status };
     // Managers may not reassign ownership.
     const cleaned = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
