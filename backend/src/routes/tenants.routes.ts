@@ -2,7 +2,9 @@ import { Router } from 'express';
 import { TenantController } from '../controllers/tenant.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
+import { validate } from '../middleware/validate';
 import { asyncHandler } from '../lib/asyncHandler';
+import { createTenantSchema, updateTenantSchema } from '../schemas/tenant.schema';
 
 const router = Router();
 router.use(authenticate);
@@ -82,7 +84,7 @@ router.get('/:id', requireRole('admin', 'manager', 'tenant'), asyncHandler(Tenan
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Tenant' }
  */
-router.post('/', requireRole('admin', 'manager'), asyncHandler(TenantController.create));
+router.post('/', requireRole('admin', 'manager'), validate(createTenantSchema), asyncHandler(TenantController.create));
 
 /**
  * @openapi
@@ -111,7 +113,7 @@ router.post('/', requireRole('admin', 'manager'), asyncHandler(TenantController.
  *             schema: { $ref: '#/components/schemas/Tenant' }
  *       404: { description: Not found }
  */
-router.put('/:id', requireRole('admin', 'manager', 'tenant'), asyncHandler(TenantController.update));
+router.put('/:id', requireRole('admin', 'manager', 'tenant'), validate(updateTenantSchema), asyncHandler(TenantController.update));
 
 /**
  * @openapi

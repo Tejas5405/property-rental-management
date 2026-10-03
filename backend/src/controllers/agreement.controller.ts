@@ -34,10 +34,7 @@ export const AgreementController = {
   // POST /api/agreements  (admin, manager)
   async create(req: Request, res: Response): Promise<void> {
     const user = requireUser(req);
-    const { property_id, tenant_id, start_date, end_date, rent, deposit } = req.body ?? {};
-    if (!property_id || !tenant_id || !start_date || !end_date || rent === undefined) {
-      throw new HttpError(400, 'property_id, tenant_id, start_date, end_date and rent are required');
-    }
+    const { property_id, tenant_id, start_date, end_date, rent, deposit } = req.body;
     if (user.role === 'manager') {
       const property = await PropertyRepository.findById(property_id);
       if (!property || property.manager_id !== user.id) {
@@ -51,8 +48,7 @@ export const AgreementController = {
   // PUT /api/agreements/:id/renew  (admin, manager)
   async renew(req: Request, res: Response): Promise<void> {
     const user = requireUser(req);
-    const { end_date } = req.body ?? {};
-    if (!end_date) throw new HttpError(400, 'end_date is required');
+    const { end_date } = req.body;
     await assertManagerOwnsAgreement(user, req.params.id);
     res.json(await AgreementService.renew(req.params.id, end_date));
   },

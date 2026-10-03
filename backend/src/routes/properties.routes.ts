@@ -2,7 +2,9 @@ import { Router } from 'express';
 import { PropertyController } from '../controllers/property.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
+import { validate } from '../middleware/validate';
 import { asyncHandler } from '../lib/asyncHandler';
+import { createPropertySchema, updatePropertySchema } from '../schemas/property.schema';
 
 const router = Router();
 router.use(authenticate);
@@ -79,7 +81,7 @@ router.get('/:id', requireRole('admin', 'manager', 'tenant'), asyncHandler(Prope
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Property' }
  */
-router.post('/', requireRole('admin', 'manager'), asyncHandler(PropertyController.create));
+router.post('/', requireRole('admin', 'manager'), validate(createPropertySchema), asyncHandler(PropertyController.create));
 
 /**
  * @openapi
@@ -103,7 +105,7 @@ router.post('/', requireRole('admin', 'manager'), asyncHandler(PropertyControlle
  *             schema: { $ref: '#/components/schemas/Property' }
  *       404: { description: Not found }
  */
-router.put('/:id', requireRole('admin', 'manager'), asyncHandler(PropertyController.update));
+router.put('/:id', requireRole('admin', 'manager'), validate(updatePropertySchema), asyncHandler(PropertyController.update));
 
 /**
  * @openapi

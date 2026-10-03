@@ -2,7 +2,9 @@ import { Router } from 'express';
 import { PaymentController } from '../controllers/payment.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
+import { validate } from '../middleware/validate';
 import { asyncHandler } from '../lib/asyncHandler';
+import { createPaymentSchema, markPaidSchema } from '../schemas/payment.schema';
 
 const router = Router();
 router.use(authenticate);
@@ -70,7 +72,7 @@ router.get('/', requireRole('admin', 'manager', 'tenant'), asyncHandler(PaymentC
  *           application/json:
  *             schema: { $ref: '#/components/schemas/Payment' }
  */
-router.post('/', requireRole('admin', 'manager'), asyncHandler(PaymentController.create));
+router.post('/', requireRole('admin', 'manager'), validate(createPaymentSchema), asyncHandler(PaymentController.create));
 
 /**
  * @openapi
@@ -97,6 +99,6 @@ router.post('/', requireRole('admin', 'manager'), asyncHandler(PaymentController
  *             schema: { $ref: '#/components/schemas/Payment' }
  *       404: { description: Not found }
  */
-router.put('/:id', requireRole('admin', 'manager'), asyncHandler(PaymentController.markPaid));
+router.put('/:id', requireRole('admin', 'manager'), validate(markPaidSchema), asyncHandler(PaymentController.markPaid));
 
 export default router;

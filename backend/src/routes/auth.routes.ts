@@ -2,7 +2,15 @@ import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth.middleware';
 import { requireRole } from '../middleware/role.middleware';
+import { validate } from '../middleware/validate';
 import { asyncHandler } from '../lib/asyncHandler';
+import {
+  registerSchema,
+  loginSchema,
+  resetPasswordSchema,
+  updateRoleSchema,
+  setActiveSchema,
+} from '../schemas/auth.schema';
 
 const router = Router();
 
@@ -28,7 +36,7 @@ const router = Router();
  *       201: { description: Account created }
  *       400: { description: Validation error }
  */
-router.post('/register', asyncHandler(AuthController.register));
+router.post('/register', validate(registerSchema), asyncHandler(AuthController.register));
 
 /**
  * @openapi
@@ -51,7 +59,7 @@ router.post('/register', asyncHandler(AuthController.register));
  *       200: { description: JWT tokens returned }
  *       401: { description: Invalid credentials }
  */
-router.post('/login', asyncHandler(AuthController.login));
+router.post('/login', validate(loginSchema), asyncHandler(AuthController.login));
 
 /**
  * @openapi
@@ -72,7 +80,7 @@ router.post('/login', asyncHandler(AuthController.login));
  *     responses:
  *       200: { description: Reset email sent }
  */
-router.post('/reset-password', asyncHandler(AuthController.resetPassword));
+router.post('/reset-password', validate(resetPasswordSchema), asyncHandler(AuthController.resetPassword));
 
 /**
  * @openapi
@@ -143,7 +151,7 @@ router.get('/users', authenticate, requireRole('admin'), asyncHandler(AuthContro
  *       403: { description: Forbidden }
  *       404: { description: User not found }
  */
-router.put('/users/:id/role', authenticate, requireRole('admin'), asyncHandler(AuthController.updateRole));
+router.put('/users/:id/role', authenticate, requireRole('admin'), validate(updateRoleSchema), asyncHandler(AuthController.updateRole));
 
 /**
  * @openapi
@@ -170,6 +178,6 @@ router.put('/users/:id/role', authenticate, requireRole('admin'), asyncHandler(A
  *       403: { description: Forbidden }
  *       404: { description: User not found }
  */
-router.put('/users/:id/active', authenticate, requireRole('admin'), asyncHandler(AuthController.setActive));
+router.put('/users/:id/active', authenticate, requireRole('admin'), validate(setActiveSchema), asyncHandler(AuthController.setActive));
 
 export default router;
