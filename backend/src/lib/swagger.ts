@@ -1,3 +1,4 @@
+import path from 'path';
 import swaggerJsdoc from 'swagger-jsdoc';
 
 const options: swaggerJsdoc.Options = {
@@ -119,7 +120,13 @@ const options: swaggerJsdoc.Options = {
     },
     security: [{ bearerAuth: [] }],
   },
-  apis: ['./src/routes/*.ts'],
+  // Resolve route files relative to this file so the spec works both when
+  // running from source (ts-node/ts-jest) and from the compiled output
+  // (dist/, `npm start`, Docker).
+  apis: [
+    path.join(__dirname, '../routes/*.ts'),
+    path.join(__dirname, '../routes/*.js'),
+  ],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);
