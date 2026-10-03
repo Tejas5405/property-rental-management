@@ -2,6 +2,7 @@ import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
+import swaggerUi from 'swagger-ui-express';
 
 import authRoutes from './routes/auth.routes';
 import propertyRoutes from './routes/properties.routes';
@@ -11,6 +12,7 @@ import paymentRoutes from './routes/payments.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import { authLimiter } from './middleware/rateLimiter';
 import { logger } from './lib/logger';
+import { swaggerSpec } from './lib/swagger';
 import { HttpError } from './types';
 
 export function createApp(): express.Express {
@@ -36,6 +38,11 @@ export function createApp(): express.Express {
 
   app.get('/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  app.get('/api/docs.json', (_req: Request, res: Response) => {
+    res.json(swaggerSpec);
   });
 
   app.use('/api/auth', authLimiter, authRoutes);
