@@ -1,7 +1,15 @@
 version: 2
 updates:
-  # Keep dependencies on the branch that is actively developed.
+  # Keep dependencies on the branch that is actually developed.
   # Switch target-branch to main once feature/prms-full-stack has been merged.
+  #
+  # Minor/patch updates flow automatically. Major updates for the dependencies
+  # listed in each ecosystem's `ignore` block are held back until the migration
+  # described in that block is done deliberately.
+  #
+  # These are version-update options only. Per GitHub's docs, Dependabot
+  # security updates always target the default branch and are not affected by
+  # `ignore`, so security fixes are still delivered automatically.
   - package-ecosystem: npm
     directory: /backend
     target-branch: feature/prms-full-stack
@@ -11,6 +19,19 @@ updates:
     groups:
       backend-minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # Express 5 changes router and error-handling behaviour; pino 10 is a
+      # native-module bump. Re-evaluate when an Express 5 migration is planned.
+      - dependency-name: express
+        update-types: ["version-update:semver-major"]
+      - dependency-name: pino
+        update-types: ["version-update:semver-major"]
+      - dependency-name: helmet
+        update-types: ["version-update:semver-major"]
+      # Zod 4 changes the error and type surface, which touches every schema in
+      # backend/src/schemas plus the validate() middleware.
+      - dependency-name: zod
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /frontend
@@ -21,6 +42,30 @@ updates:
     groups:
       frontend-minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # The Next.js 14 -> 16 migration is a planned task, not a dependency bump.
+      # Measured blockers against this branch:
+      #   * next@16 builds with Turbopack by default, and its CSS parser rejects
+      #     the `var(--spacing(4))` function notation emitted by the current
+      #     Tailwind 3 / PostCSS pipeline (app/globals.css:1437) -> build fails.
+      #   * eslint-config-next@16 requires eslint 10, whose engines field is
+      #     node ^20.19.0 || ^22.13.0 || >=24, while CI pins node-version: 20.
+      #   * typescript@7.0.2 breaks resolution of the "@/..." path aliases here;
+      #     A/B verified on an identical tree: 25/25 pages on 5.9.3, build fails
+      #     on 7.0.2.
+      # next, eslint-config-next, eslint and typescript must move together with
+      # the Tailwind/PostCSS and Node version changes.
+      - dependency-name: next
+        update-types: ["version-update:semver-major"]
+      - dependency-name: eslint-config-next
+        update-types: ["version-update:semver-major"]
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      # Tailwind 4 changes the CSS-first configuration surface this repo uses.
+      - dependency-name: tailwindcss
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
