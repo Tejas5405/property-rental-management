@@ -16,6 +16,12 @@ import { HttpError } from './types';
 export function createApp(): express.Express {
   const app = express();
 
+  // The backend deploys behind a reverse proxy (Render). Trust exactly one hop
+  // of X-Forwarded-For so req.ip is the real client IP — required for
+  // per-client rate limiting to work (otherwise every user shares the proxy's
+  // IP in a single bucket) and to silence express-rate-limit's XFF warnings.
+  app.set('trust proxy', 1);
+
   app.use(helmet());
   app.use(
     cors({
