@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
-import morgan from 'morgan';
+import pinoHttp from 'pino-http';
 import swaggerUi from 'swagger-ui-express';
 
 import authRoutes from './routes/auth.routes';
@@ -10,11 +10,19 @@ import tenantRoutes from './routes/tenants.routes';
 import agreementRoutes from './routes/agreements.routes';
 import paymentRoutes from './routes/payments.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import { authLimiter } from './middleware/rateLimiter';
+import { logger } from './lib/logger';
 import { swaggerSpec } from './lib/swagger';
 import { HttpError } from './types';
 
 export function createApp(): express.Express {
   const app = express();
+
+  // The backend deploys behind a reverse proxy (Render). Trust exactly one hop
+  // of X-Forwarded-For so req.ip is the real client IP — required for
+  // per-client rate limiting to work (otherwise every user shares the proxy's
+  // IP in a single bucket) and to silence express-rate-limit's XFF warnings.
+  app.set('trust proxy', 1);
 
   app.use(helmet());
   app.use(
@@ -24,7 +32,9 @@ export function createApp(): express.Express {
     })
   );
   app.use(express.json());
-  if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'));
+  if (process.env.NODE_ENV !== 'test') {
+    app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => (req as Request).url === '/health' } }));
+  }
 
   app.get('/health', (_req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -35,7 +45,7 @@ export function createApp(): express.Express {
     res.json(swaggerSpec);
   });
 
-  app.use('/api/auth', authRoutes);
+  app.use('/api/auth', authLimiter, authRoutes);
   app.use('/api/properties', propertyRoutes);
   app.use('/api/tenants', tenantRoutes);
   app.use('/api/agreements', agreementRoutes);
@@ -53,8 +63,7 @@ export function createApp(): express.Express {
     const status = err instanceof HttpError ? err.status : 500;
     const message = err instanceof Error ? err.message : 'Internal server error';
     if (status >= 500) {
-      // eslint-disable-next-line no-console
-      console.error(err);
+      logger.error(err, 'Unhandled server error');
     }
     res.status(status).json({ error: message });
   });
