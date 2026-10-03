@@ -5,7 +5,7 @@ agreements, and payments — with role-based access for **admins**, **managers**
 and **tenants**.
 
 - **Frontend:** Next.js 14 (App Router, TypeScript), Tailwind CSS, shadcn/ui, Recharts
-- **Backend:** Node 20, Express, TypeScript
+- **Backend:** Node 22, Express, TypeScript
 - **Database / Auth:** Supabase (PostgreSQL + Row-Level Security + Supabase Auth)
 - **Deploy targets:** Vercel (frontend), Render (backend), Supabase (database)
 
@@ -73,7 +73,7 @@ property-rental-management/
 ## Quick start (local)
 
 ### Prerequisites
-- Node.js 20+
+- Node.js 22+
 - A Supabase project (free tier is fine)
 
 ### 1. Database (Supabase)
@@ -179,7 +179,7 @@ Deploy in this order:
 
 1. **Supabase** — run `docs/schema.sql` + `docs/seed.sql` (database is live immediately).
 2. **Render (backend)** — New Web Service → root directory `backend`, build
-   `npm install && npm run build`, start `npm start`, Node 20. Add the backend env
+   `npm install && npm run build`, start `npm start`, Node 22. Add the backend env
    vars. Copy the resulting service URL.
 3. **Vercel (frontend)** — root directory `frontend`. Set `NEXT_PUBLIC_SUPABASE_URL`,
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_API_URL` (= the Render URL).
