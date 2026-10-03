@@ -1,0 +1,29 @@
+version: 2
+updates:
+  # Keep dependencies on the branch that is actively developed.
+  # Switch target-branch to main once feature/prms-full-stack has been merged.
+  - package-ecosystem: npm
+    directory: /backend
+    target-branch: feature/prms-full-stack
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      backend-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    target-branch: feature/prms-full-stack
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      frontend-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: feature/prms-full-stack
+    schedule:
+      interval: weekly
