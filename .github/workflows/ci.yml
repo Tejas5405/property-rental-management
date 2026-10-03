@@ -42,6 +42,10 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci --ignore-scripts
+      # Guard: Tailwind v4 syntax (util-(--var), --spacing(N)) must not
+      # re-enter this Tailwind v3 project.
+      # See frontend/scripts/check-tailwind-syntax.js
+      - run: npm run check:tailwind
       - run: npm run lint
       - run: npm run build
         env:
